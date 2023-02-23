@@ -7,7 +7,92 @@ body {
     Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fafafa;
+  background-color: rgb(251, 225, 234);
   color: #212121;
   line-height: 1.5;
+  text-align: center;
 }
+
+.header {
+background-color: mediumaquamarine;
+margin-bottom: 20px;
+padding: 20px;
+}
+
+.search-form-input {
+	min-width: 221px;
+	min-height: 48px;
+	padding-left: 24px;
+	border: 1px solid rgb(251, 225, 234);;
+	outline: none;
+
+	font-size: 10px;
+	line-height: 12px;
+	letter-spacing: 1px;
+	color: crimson;
+	background: rgb(251, 225, 234);
+
+	transition: border-color 500ms linear;
+}
+
+.search-form-input::placeholder {
+	font-size: 10px;
+	line-height: 12px;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+
+	color: var(--secondary-dark-color);
+	
+}
+
+.search-form-input:focus {
+	border-color: crimson;
+}
+
+.search-form-btn {
+	min-width: 79px;
+	min-height: 47px;
+	border: 1px solid transparent;
+
+	font-size: 10px;
+	line-height: 12px;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+
+	color: crimson;
+	background-color: rgb(251, 225, 234);;
+	cursor: pointer;
+	transition: border-color 500ms linear;
+}
+
+.search-form-btn:hover,
+.search-form-btn:focus {
+	border-color: crimson;
+}
+
+.gallery {
+
+}
+
+.load-more {
+  min-width: 80px;
+	min-height: 35px;
+  border: 1 solid transparent;
+	
+
+	font-size: 10px;
+	line-height: 12px;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+
+	color: crimson;
+	background-color: transparent;
+	cursor: pointer;
+	transition: font-weight 500ms linear;
+}
+
+.load-more:hover,
+.load-more:focus {
+  font-weight: 600;
+}
+
