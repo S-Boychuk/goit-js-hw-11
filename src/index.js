@@ -1,84 +1,109 @@
 import './css/styles.css';
-// import debounce from 'lodash.debounce';
-// import fetchCountries from './fetchCountries';
-// import { Notify } from 'notiflix';
+import { Notify } from 'notiflix';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+import PixabayApiService from './PixabayApiService';
+import LoadMoreBtn from './loadMoreBtn';
 
-// const DEBOUNCE_DELAY = 300;
+const pixabayApiService = new PixabayApiService();
+const loadMoreBtn = new LoadMoreBtn('.load-more');
+const lightbox = new SimpleLightbox('.gallery a');
 
-// const elements = {
-//   inputEl: document.querySelector('#search-box'),
-//   countryListEl: document.querySelector('.country-list'),
-//   countryInfoEl: document.querySelector('.country-info'),
-// };
+const formEl = document.querySelector('.search-form');
+const searchBtnEl = document.querySelector('.search-form-btn');
+const galleryEl = document.querySelector('.gallery');
 
-// elements.inputEl.addEventListener('input', debounce(onInput, DEBOUNCE_DELAY));
+formEl.addEventListener('submit', onFormSubmit);
+loadMoreBtn.button.addEventListener('click', renderGallery);
 
-// function onInput() {
-//   const countryName = elements.inputEl.value.trim();
+function onFormSubmit(event) {
+  event.preventDefault();
 
-//   elements.countryListEl.innerHTML = '';
-//   elements.countryInfoEl.innerHTML = '';
+  loadMoreBtn.hide();
 
-//   if (countryName.length != 0) {
-//     fetchCountries(countryName)
-//       .then(data => {
-//         console.log(data);
-//         if (data.length > 10) {
-//           Notify.info(
-//             `Too many matches found. Please enter a more specific name.`
-//           );
-//         } else if (data.length >= 2 && data.length <= 10) {
-//           console.log('many countries');
-//           let markUpHtmlData = data.reduce(
-//             (accumulator, currentCountry) =>
-//               createCountryMarkup(
-//                 currentCountry.flags.png,
-//                 currentCountry.name.official
-//               ) + accumulator,
-//             ''
-//           );
-//           updateMarkUp(markUpHtmlData);
-//         } else {
-//           console.log('one country');
-//           let cardHtmlData = createCountryCard(
-//             data[0].flags.png,
-//             data[0].name.official,
-//             data[0].capital[0],
-//             data[0].population,
-//             Object.values(data[0].languages)[0]
-//           );
-//           updateCard(cardHtmlData);
-//         }
-//       })
-//       .catch(onError);
-//   }
-// }
+  const inputValue = formEl.elements.searchQuery.value.trim();
+ 
+  if (inputValue.length != 0) {
+    pixabayApiService.resetPage();
+    
+    clearGallery();
+   
+    pixabayApiService.searchQuery = inputValue;
+    renderGallery().finally(() => formEl.reset());
+  }
+}
 
-// function createCountryMarkup(flag, name) {
-//   return `<li><img src=${flag}  class="country-flag" width="30" height="30"/>
-//     <p class="country-name">${name}</p></li>`;
-// }
+async function renderGallery() {
+  try {
+    const images = await pixabayApiService.getImages();
+  
+    if (images.hits.length === 0) {
+      loadMoreBtn.hide();
+      Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.',
+        { width: '300px', position: 'center-top', distance: '120px' }
+      );
+      return;
+    }
 
-// function createCountryCard(flag, name, capital, population, languages) {
-//   return `
-//   <div class="wrap">
-//     <img src=${flag} class="country-flag"  width="30" height="30"/>
-//     <h2 class="country-name">${name}</h2>
-//   </div>
-//     <p class="country-capital">Capital: ${capital}</p>
-//     <p class="country-population">Population: ${population}</p>
-//     <p class="country-languages">Languages: ${languages}</p>
-//   `;
-// }
+    const markup = images.hits.reduce(
+      (acc, image) => createGalleryCardMarkup(image) + acc,
+      ''
+    );
 
-// function updateCard(cardData) {
-//   elements.countryInfoEl.innerHTML = cardData;
-// }
+    appendImageToGallery(markup);
 
-// function updateMarkUp(markUpData) {
-//   elements.countryListEl.innerHTML = markUpData;
-// }
+    const totalPages = Math.ceil(images.totalHits / pixabayApiService.perPage);
+   
+    if (pixabayApiService.page > totalPages) {
+      loadMoreBtn.hide();
+      Notify.info("We're sorry, but you've reached the end of search results.");
+    } else {
+      loadMoreBtn.show();
+    }
 
-// function onError() {
-//   Notify.failure('Oops, there is no country with that name');
-// }
+    lightbox.refresh();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function createGalleryCardMarkup({
+  webformatURL,
+  largeImageURL,
+  tags,
+  likes,
+  views,
+  comments,
+  downloads,
+}) {
+  return `
+    <div class="photo-card">
+        <a class='image-wrap' href="${largeImageURL}">
+        <img src="${webformatURL}" alt="${tags}" loading="lazy" width="280"/>
+        </a>
+      <div class="info">
+        <p class="info-item">
+          <b>Likes:</b> ${likes}
+        </p>
+        <p class="info-item">
+          <b>Views:</b> ${views}
+        </p>
+        <p class="info-item">
+          <b>Comments:</b> ${comments}
+        </p>
+        <p class="info-item">
+          <b>Downloads:</b> ${downloads}
+        </p>
+      </div>
+    </div>
+    `;
+}
+
+function appendImageToGallery(markup) {
+  galleryEl.insertAdjacentHTML('beforeend', markup);
+}
+
+function clearGallery() {
+  galleryEl.innerHTML = '';
+}
